@@ -94,7 +94,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                 $relation = $this->getRelationWithoutConstraints($name);
 
                 $table = $relation->getRelated()->newQuery()->getQuery()->from === $this->getQuery()->from
-                    ? $relation->getRelationCountHash()
+                    ? 'laravel_reserved_' . (new \ReflectionClass(Relation::class))->getStaticPropertyValue('selfJoinCount')
                     : $relation->getRelated()->getTable();
 
                 $query = $relation->getRelationExistenceAggregatesQuery(
@@ -124,7 +124,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
             }
 
             $table = $relation->getRelated()->newQuery()->getQuery()->from === $this->getQuery()->from
-                ? $relation->getRelationCountHash()
+                ? 'laravel_reserved_' . (new \ReflectionClass(Relation::class))->getStaticPropertyValue('selfJoinCount')
                 : $relation->getRelated()->getTable();
 
             $hasQuery = $relation->getRelationExistenceAggregatesQuery(
