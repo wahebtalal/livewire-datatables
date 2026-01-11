@@ -434,7 +434,7 @@ class LivewireDatatable extends Component
 
                     if (is_array($column->select)) {
                         $selects = $column->select;
-                        $first = array_shift($selects) . ' AS ' . $column->name;
+                        $first = array_shift($selects) . ' AS ' . str_replace('.', '_', $column->name);
                         $others = array_map(function ($select) {
                             return $select . ' AS ' . $select;
                         }, $selects);
@@ -442,7 +442,7 @@ class LivewireDatatable extends Component
                         return array_merge([$first], $others);
                     }
 
-                    return $column->select . ' AS ' . $column->name;
+                    return $column->select . ' AS ' . str_replace('.', '_', $column->name);
                 });
             }, function ($columns) {
                 return $columns->map->select;
@@ -788,7 +788,8 @@ class LivewireDatatable extends Component
     public function summarize($column)
     {
         try {
-            return $this->results->sum($column);
+            return $this->results->sum(str_replace('.', '_', $column));
+
         } catch (\TypeError $e) {
             return '';
         }
