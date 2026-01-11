@@ -1677,7 +1677,7 @@ class LivewireDatatable extends Component
 
     public function mapCallbacks($paginatedCollection, $export = false)
     {
-        $paginatedCollection->collect()->map(function ($row, $i) use ($export) {
+        $paginatedCollection->getCollection()->transform(function ($row, $i) use ($export) {
             foreach ($row as $name => $value) {
                 if ($this->search && ! config('livewire-datatables.suppress_search_highlights') && $this->searchableColumns()->firstWhere('name', $name)) {
                     $row->$name = $this->highlight($row->$name, $this->search);
