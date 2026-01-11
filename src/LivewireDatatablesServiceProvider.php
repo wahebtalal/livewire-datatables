@@ -93,10 +93,9 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
 
                 $relation = $this->getRelationWithoutConstraints($name);
 
-
                 $table = $relation->getRelated()->newQuery()->getQuery()->from === $this->getQuery()->from
                     ? $relation->getRelationCountHashWithoutIncrementing()
-                    : $relation->getRelated()->getTable();
+                    : ($this->query->getConnection()->getTablePrefix() ?? '') . $relation->getRelated()->getTable();
 
                 $query = $relation->getRelationExistenceAggregatesQuery(
                     $relation->getRelated()->newQuery(),
@@ -112,7 +111,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                 if (count($query->columns) > 1) {
                     $query->columns = [$query->columns[0]];
                 }
-                $columnAlias = str_replace('.', '_', $alias ?? collect([$relations, $column])->filter()->flatten()->join('.'));
+                $columnAlias = new Expression('`' . ($alias ?? collect([$relations, $column])->filter()->flatten()->join('.')) . '`');
                 $this->selectSub($query, $columnAlias);
             }
 
@@ -126,7 +125,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
 
             $table = $relation->getRelated()->newQuery()->getQuery()->from === $this->getQuery()->from
                 ? $relation->getRelationCountHashWithoutIncrementing()
-                : $relation->getRelated()->getTable();
+                : ($this->query->getConnection()->getTablePrefix() ?? '') . $relation->getRelated()->getTable();
 
             $hasQuery = $relation->getRelationExistenceAggregatesQuery(
                 $relation->getRelated()->newQueryWithoutRelationships(),
@@ -163,10 +162,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
         });
 
         Relation::macro('getRelationCountHashWithoutIncrementing', function () {
-            $reflector = new \ReflectionProperty(Relation::class, 'selfJoinCount');
-            $reflector->setAccessible(true);
-
-            return 'laravel_reserved_' . $reflector->getValue(null);
+            return 'laravel_reserved_' . static::$selfJoinCount;
         });
     }
 
