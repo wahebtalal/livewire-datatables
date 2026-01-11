@@ -95,11 +95,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
 
 
                 $table = $relation->getRelated()->newQuery()->getQuery()->from === $this->getQuery()->from
-                    ? 'laravel_reserved_' . (function() {
-                        $p = new \ReflectionProperty(Relation::class, 'selfJoinCount');
-                        $p->setAccessible(true);
-                        return $p->getValue();
-                    })()
+                    ? $relation->getRelationCountHashWithoutIncrementing()
                     : $relation->getRelated()->getTable();
 
                 $query = $relation->getRelationExistenceAggregatesQuery(
@@ -129,11 +125,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
             }
 
             $table = $relation->getRelated()->newQuery()->getQuery()->from === $this->getQuery()->from
-                ? 'laravel_reserved_' . (function() {
-                        $p = new \ReflectionProperty(Relation::class, 'selfJoinCount');
-                        $p->setAccessible(true);
-                        return $p->getValue();
-                    })()
+                ? $relation->getRelationCountHashWithoutIncrementing()
                 : $relation->getRelated()->getTable();
 
             $hasQuery = $relation->getRelationExistenceAggregatesQuery(
@@ -168,6 +160,13 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                 $parentQuery,
                 $expression
             )->setBindings([], 'select');
+        });
+
+        Relation::macro('getRelationCountHashWithoutIncrementing', function () {
+            $reflector = new \ReflectionProperty(Relation::class, 'selfJoinCount');
+            $reflector->setAccessible(true);
+
+            return 'laravel_reserved_' . $reflector->getValue(null);
         });
     }
 
