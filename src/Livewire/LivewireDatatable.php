@@ -12,6 +12,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Mediconesystems\LivewireDatatables\Column;
@@ -308,6 +309,7 @@ class LivewireDatatable extends Component
         })->toArray();
     }
 
+    #[Computed]
     public function getComplexColumnsProperty()
     {
         return collect($this->columns)->filter(function ($column) {
@@ -315,6 +317,7 @@ class LivewireDatatable extends Component
         });
     }
 
+    #[Computed]
     public function getPersistKeyProperty()
     {
         return $this->persistComplexQuery
@@ -322,6 +325,7 @@ class LivewireDatatable extends Component
             : null;
     }
 
+    #[Computed]
     public function getModelInstanceProperty()
     {
         return $this->model::firstOrFail();
@@ -337,6 +341,7 @@ class LivewireDatatable extends Component
         $this->model::destroy($id);
     }
 
+    #[Computed]
     public function getProcessedColumnsProperty()
     {
         return ColumnSet::build($this->columns())
@@ -486,6 +491,7 @@ class LivewireDatatable extends Component
         return $relatedQuery->getQuery()->from . '.' . $columnName;
     }
 
+    #[Computed]
     public function getFreshColumnsProperty()
     {
         $columns = $this->processedColumns->columnsArray();
@@ -1155,28 +1161,34 @@ class LivewireDatatable extends Component
         });
     }
 
+    #[Computed]
     public function getHeaderProperty()
     {
         return method_exists(static::class, 'header');
     }
 
+    #[Computed]
     public function getShowHideProperty()
     {
         return $this->showHide() ?? $this->showHide;
     }
 
+    #[Computed]
     public function getPaginationControlsProperty()
     {
         return $this->paginationControls() ?? $this->paginationControls;
     }
 
+    #[Computed]
     public function getResultsProperty()
     {
         $this->row = 1;
 
-        $perPage = ($this->getQuery()->limit && ($this->getQuery()->limit < $this->perPage)) ? $this->getQuery()->limit : $this->perPage;
-        $paginatedQuery = $this->getQuery()->paginate($perPage);
-        $total = ($this->getQuery()->limit) ?: $paginatedQuery->total();
+        $query = $this->getQuery();
+        $perPage = ($query->limit && ($query->limit < $this->perPage)) ? $query->limit : $this->perPage;
+        $paginatedQuery = $query->paginate($perPage);
+        $total = ($query->limit) ?: $paginatedQuery->total();
+
         $paginatedQuery = new LengthAwarePaginator(
             $paginatedQuery->items(),
             $paginatedQuery->total() < $total ? $paginatedQuery->total() : $total,
@@ -1190,26 +1202,31 @@ class LivewireDatatable extends Component
         );
     }
 
+    #[Computed]
     public function getSelectFiltersProperty()
     {
         return collect($this->freshColumns)->filter->selectFilter;
     }
 
+    #[Computed]
     public function getBooleanFiltersProperty()
     {
         return collect($this->freshColumns)->filter->booleanFilter;
     }
 
+    #[Computed]
     public function getTextFiltersProperty()
     {
         return collect($this->freshColumns)->filter->textFilter;
     }
 
+    #[Computed]
     public function getNumberFiltersProperty()
     {
         return collect($this->freshColumns)->filter->numberFilter;
     }
 
+    #[Computed]
     public function getActiveFiltersProperty()
     {
         return count($this->activeDateFilters)
@@ -1634,6 +1651,7 @@ class LivewireDatatable extends Component
         return $this;
     }
 
+    #[Computed]
     public function getCallbacksProperty()
     {
         return collect($this->freshColumns)->filter->callback->mapWithKeys(function ($column) {
@@ -1641,6 +1659,7 @@ class LivewireDatatable extends Component
         });
     }
 
+    #[Computed]
     public function getExportCallbacksProperty()
     {
         return collect($this->freshColumns)->filter->exportCallback->mapWithKeys(function ($column) {
@@ -1648,6 +1667,7 @@ class LivewireDatatable extends Component
         });
     }
 
+    #[Computed]
     public function getEditablesProperty()
     {
         return collect($this->freshColumns)->filter(function ($column) {
@@ -1747,13 +1767,16 @@ class LivewireDatatable extends Component
 
     public function render()
     {
-        $this->dispatch('refreshDynamic');
-
         if ($this->persistPerPage) {
             session()->put([$this->sessionStorageKey() . '_perpage' => $this->perPage]);
         }
 
         return view('datatables::datatable')->layoutData(['title' => $this->title]);
+    }
+
+    public function rendered()
+    {
+        $this->dispatch('refreshDynamic');
     }
 
     public function export(string $filename = 'DatatableExport.xlsx')
@@ -1883,6 +1906,7 @@ class LivewireDatatable extends Component
         })->toArray();
     }
 
+    #[Computed]
     public function getMassActionsProperty()
     {
         $actions = collect($this->buildActions())->flatten();
@@ -1896,6 +1920,7 @@ class LivewireDatatable extends Component
         return $actions->toArray();
     }
 
+    #[Computed]
     public function getMassActionsOptionsProperty()
     {
         return collect($this->actions)->groupBy(function ($item) {

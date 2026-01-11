@@ -111,7 +111,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                 if (count($query->columns) > 1) {
                     $query->columns = [$query->columns[0]];
                 }
-                $columnAlias = new Expression('`' . ($alias ?? collect([$relations, $column])->filter()->flatten()->join('.')) . '`');
+                $columnAlias = str_replace('.', '_', $alias ?? collect([$relations, $column])->filter()->flatten()->join('.'));
                 $this->selectSub($query, $columnAlias);
             }
 
@@ -162,7 +162,10 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
         });
 
         Relation::macro('getRelationCountHashWithoutIncrementing', function () {
-            return 'laravel_reserved_' . static::$selfJoinCount;
+            $reflector = new \ReflectionProperty(Relation::class, 'selfJoinCount');
+            $reflector->setAccessible(true);
+
+            return 'laravel_reserved_' . $reflector->getValue(null);
         });
     }
 
