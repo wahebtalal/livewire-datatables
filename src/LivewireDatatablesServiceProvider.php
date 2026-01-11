@@ -14,8 +14,8 @@ use Livewire\Livewire;
 use Mediconesystems\LivewireDatatables\Commands\DatatableMakeCommand;
 use Mediconesystems\LivewireDatatables\Commands\MakeDatatableCommand;
 use Mediconesystems\LivewireDatatables\Http\Controllers\FileExportController;
-use Mediconesystems\LivewireDatatables\Http\Livewire\ComplexQuery;
-use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
+use Mediconesystems\LivewireDatatables\Livewire\ComplexQuery;
+use Mediconesystems\LivewireDatatables\Livewire\LivewireDatatable;
 
 class LivewireDatatablesServiceProvider extends ServiceProvider
 {
@@ -94,7 +94,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                 $relation = $this->getRelationWithoutConstraints($name);
 
                 $table = $relation->getRelated()->newQuery()->getQuery()->from === $this->getQuery()->from
-                    ? $relation->getRelationCountHashWithoutIncrementing()
+                    ? $relation->getRelationCountHash()
                     : ($this->query->getConnection()->getTablePrefix() ?? '') . $relation->getRelated()->getTable();
 
                 $query = $relation->getRelationExistenceAggregatesQuery(
@@ -111,7 +111,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                 if (count($query->columns) > 1) {
                     $query->columns = [$query->columns[0]];
                 }
-                $columnAlias = new Expression('`' . ($alias ?? collect([$relations, $column])->filter()->flatten()->join('.')) . '`');
+                $columnAlias = $alias ?? collect([$relations, $column])->filter()->flatten()->join('.');
                 $this->selectSub($query, $columnAlias);
             }
 
@@ -124,7 +124,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
             }
 
             $table = $relation->getRelated()->newQuery()->getQuery()->from === $this->getQuery()->from
-                ? $relation->getRelationCountHashWithoutIncrementing()
+                ? $relation->getRelationCountHash()
                 : ($this->query->getConnection()->getTablePrefix() ?? '') . $relation->getRelated()->getTable();
 
             $hasQuery = $relation->getRelationExistenceAggregatesQuery(
@@ -159,10 +159,6 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                 $parentQuery,
                 $expression
             )->setBindings([], 'select');
-        });
-
-        Relation::macro('getRelationCountHashWithoutIncrementing', function () {
-            return 'laravel_reserved_' . static::$selfJoinCount;
         });
     }
 

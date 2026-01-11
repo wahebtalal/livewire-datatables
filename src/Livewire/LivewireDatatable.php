@@ -143,9 +143,9 @@ class LivewireDatatable extends Component
 
     /**
      * This events allows to control the options of the datatable from foreign livewire components
-     * by using $emit.
+     * by using $dispatch.
      *
-     * @example $this->emit('applyToTable', ['perPage' => 25]); // in any other livewire component on the same page
+     * @example $this->dispatch('applyToTable', ['perPage' => 25]); // in any other livewire component on the same page
      */
     public function applyToTable($options)
     {
@@ -428,11 +428,8 @@ class LivewireDatatable extends Component
                     if ($column->select instanceof Expression) {
                         $sep_string = config('database.default') === 'pgsql' ? '"' : '`';
 
-                        if (version_compare('10.0.0', app()->version()) == -1) {
-                            return new Expression($column->select->getValue(DB::getQueryGrammar()) . ' AS ' . $sep_string . $column->name . $sep_string);
-                        } else {
-                            return new Expression($column->select->getValue() . ' AS ' . $sep_string . $column->name . $sep_string);
-                        }
+
+                        return new Expression($column->select->getValue(DB::getQueryGrammar()) . ' AS ' . $sep_string . $column->name . $sep_string);
                     }
 
                     if (is_array($column->select)) {
@@ -1041,7 +1038,7 @@ class LivewireDatatable extends Component
         $this->setPage(1);
         $this->setSessionStoredFilters();
 
-        $this->emitTo('complex-query', 'resetQuery');
+        $this->dispatch('resetQuery')->to('complex-query');
     }
 
     public function removeBooleanFilter($column)
@@ -1120,7 +1117,7 @@ class LivewireDatatable extends Component
 
         $filter = Arr::wrap($filter);
 
-        $query->when($column['type'] === 'boolean', function ($query) use ($filter, $relation, $field, $aggregate) {
+        return $query->when($column['type'] === 'boolean', function ($query) use ($filter, $relation, $field, $aggregate) {
             $query->where(function ($query) use ($filter, $relation, $field, $aggregate) {
                 if (Arr::wrap($filter)[0]) {
                     $query->hasAggregate($relation, $field, $aggregate);
@@ -1749,7 +1746,7 @@ class LivewireDatatable extends Component
 
     public function render()
     {
-        $this->emit('refreshDynamic');
+        $this->dispatch('refreshDynamic');
 
         if ($this->persistPerPage) {
             session()->put([$this->sessionStorageKey() . '_perpage' => $this->perPage]);
@@ -1855,6 +1852,7 @@ class LivewireDatatable extends Component
     public function buildActions()
     {
         // Override this method with your own method for creating mass actions
+        return [];
     }
 
     public function rowClasses($row, $loop)
