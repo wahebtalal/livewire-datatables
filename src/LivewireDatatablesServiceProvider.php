@@ -138,6 +138,36 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
 
             return $this->addWhereCountQuery($hasQuery->toBase(), $operator, $count, 'and');
         });
+
+        EloquentBuilder::macro('joinRelation', function ($relation, $callback = null, $type = 'inner', $useThrough = false, $relatedQuery = null) {
+            if (is_string($relation)) {
+                $relation = ($relatedQuery ?: $this)->getRelation($relation);
+            }
+
+            if ($relation instanceof BelongsToMany) {
+                $this->leftJoinIfNotJoined(
+                    $relation->getTable(),
+                    $relation->getQualifiedParentKeyName(),
+                    '=',
+                    $relation->getQualifiedForeignPivotKeyName()
+                );
+                $this->leftJoinIfNotJoined(
+                    $relation->getRelated()->getTable(),
+                    $relation->getQualifiedRelatedPivotKeyName(),
+                    '=',
+                    $relation->getRelated()->getQualifiedKeyName()
+                );
+            } else {
+                $this->leftJoinIfNotJoined(
+                    $relation->getRelated()->getTable(),
+                    $relation->getQualifiedParentKeyName(),
+                    '=',
+                    $relation->getQualifiedFirstKeyName()
+                );
+            }
+
+            return $this;
+        });
     }
 
     public function loadRelationMacros()

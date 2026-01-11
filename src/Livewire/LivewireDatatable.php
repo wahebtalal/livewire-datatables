@@ -479,9 +479,8 @@ class LivewireDatatable extends Component
                 return null;
             }
 
-            $useThrough = collect($this->query->getQuery()->joins)
-                ->pluck('table')
-                ->contains($relatedQuery->getRelation($relation)->getRelated()->getTable());
+            $joinTables = collect($this->query->getQuery()->joins)->pluck('table');
+            $useThrough = $joinTables->contains($relatedQuery->getRelation($relation)->getRelated()->getTable());
 
             $relatedQuery = $this->query->joinRelation($relation, null, 'left', $useThrough, $relatedQuery);
         }
@@ -1183,21 +1182,22 @@ class LivewireDatatable extends Component
         $this->row = 1;
 
         $query = $this->getQuery();
+        
         $perPage = ($query->limit && ($query->limit < $this->perPage)) ? $query->limit : $this->perPage;
-        $paginatedQuery = $query->paginate($perPage);
-        $total = ($query->limit) ?: $paginatedQuery->total();
+        
+        $results = $query->paginate($perPage);
 
-        $paginatedQuery = new LengthAwarePaginator(
-            $paginatedQuery->items(),
-            $paginatedQuery->total() < $total ? $paginatedQuery->total() : $total,
-            $this->perPage,
-            $paginatedQuery->currentPage(),
-            $paginatedQuery->getOptions()
-        );
+        if ($query->limit && $results->total() > $query->limit) {
+            $results = new LengthAwarePaginator(
+                $results->items(),
+                $query->limit,
+                $perPage,
+                $results->currentPage(),
+                $results->getOptions()
+            );
+        }
 
-        return $this->mapCallbacks(
-            $paginatedQuery
-        );
+        return $this->mapCallbacks($results);
     }
 
     #[Computed]
