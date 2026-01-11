@@ -428,8 +428,8 @@ class LivewireDatatable extends Component
                     if ($column->select instanceof Expression) {
                         $sep_string = config('database.default') === 'pgsql' ? '"' : '`';
 
-
-                        return new Expression($column->select->getValue(DB::getQueryGrammar()) . ' AS ' . $sep_string . $column->name . $sep_string);
+                        $alias = str_replace('.', '_', $column->name);
+                        return new Expression($column->select->getValue(DB::getQueryGrammar()) . ' AS ' . $sep_string . $alias . $sep_string);
                     }
 
                     if (is_array($column->select)) {
